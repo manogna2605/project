@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Danger Alert App</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <style>
+    body { font-family: sans-serif; text-align: center; background: #111; color: #fff; }
+    button {
+      background: red; color: white; font-size: 2em; padding: 20px 40px;
+      border: none; border-radius: 15px; cursor: pointer; margin-top: 100px;
+    }
+    #alertBox { display: none; margin-top: 50px; font-size: 1.5em; }
+  </style>
+</head>
+<body>
+  <h1>🚨 Emergency Alert System 🚨</h1>
+  <input id="username" placeholder="Enter your name" style="padding:10px;font-size:1em;">
+  <br><br>
+  <button id="dangerBtn">HELP ME!</button>
+
+  <div id="alertBox"></div>
+  <audio id="siren" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"></audio>
+
+  <script>
+    const socket = io();
+    const btn = document.getElementById('dangerBtn');
+    const alertBox = document.getElementById('alertBox');
+    const siren = document.getElementById('siren');
+
+    // send alert
+    btn.onclick = () => {
+      const name = document.getElementById('username').value || "Unknown";
+      socket.emit('danger_pressed', { sender: name });
+      alertBox.innerHTML = "🚨 Alert sent!";
+      alertBox.style.display = "block";
+    };
+
+    // receive alert
+    socket.on('alert_all', data => {
+      const [lat, lng] = data.location || [null, null];
+      let msg = `🚨 ${data.sender} is in danger!`;
+      if (lat && lng)
+        msg += `<br><a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" style="color:cyan;">View Location</a>`;
+      alertBox.innerHTML = msg;
+      alertBox.style.display = "block";
+      siren.play();
+    });
+  </script>
+</body>
+</html>
+
+
