@@ -3,3 +3,4 @@ flask_socketio
 geocoder
 Flask>=2.3.0
 gunicorn
+eventlet==0.33.0
