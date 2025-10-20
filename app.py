@@ -1,29 +1,15 @@
-from flask import Flask, render_template, request
-from flask_socketio import SocketIO, emit
-import geocoder
+from flask import Flask, render_template
+import os
 
 app = Flask(__name__)
-socketio = SocketIO(app)
 
 @app.route('/')
-def index():
+def home():
     return render_template('index.html')
 
-@socketio.on('danger_pressed')
-def handle_danger(data):
-    # Optional: auto-detect sender location (approx)
-    g = geocoder.ip('me')
-    location = g.latlng if g.ok else [None, None]
-
-    emit('alert_all', {
-        'sender': data.get('sender', 'Someone'),
-        'location': location
-    }, broadcast=True)
-
 if __name__ == '__main__':
-    from flask_socketio import SocketIO
-    socketio = SocketIO(app)
-    socketio.run(app, host='0.0.0.0', port=10000, allow_unsafe_werkzeug=True)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False, allow_unsafe_werkzeug=True)
 
 
 

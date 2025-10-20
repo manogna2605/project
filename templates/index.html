@@ -1,52 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Danger Alert App</title>
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <style>
-    body { font-family: sans-serif; text-align: center; background: #111; color: #fff; }
-    button {
-      background: red; color: white; font-size: 2em; padding: 20px 40px;
-      border: none; border-radius: 15px; cursor: pointer; margin-top: 100px;
-    }
-    #alertBox { display: none; margin-top: 50px; font-size: 1.5em; }
-  </style>
+    <title>Emergency Alert</title>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-database-compat.js"></script>
 </head>
-<body>
-  <h1>🚨 Emergency Alert System 🚨</h1>
-  <input id="username" placeholder="Enter your name" style="padding:10px;font-size:1em;">
-  <br><br>
-  <button id="dangerBtn">HELP ME!</button>
+<body style="font-family:sans-serif; text-align:center; margin-top:80px;">
+    <h2>🚨 Emergency Alert System</h2>
+    <button id="alertBtn" style="padding:15px 25px; font-size:18px;">Send Alert 🚨</button>
+    <p id="status"></p>
 
-  <div id="alertBox"></div>
-  <audio id="siren" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"></audio>
+    <audio id="siren" src="{{ url_for('static', filename='alert.mp3') }}" preload="auto"></audio>
 
-  <script>
-    const socket = io();
-    const btn = document.getElementById('dangerBtn');
-    const alertBox = document.getElementById('alertBox');
-    const siren = document.getElementById('siren');
+    <script>
+        // 🔥 Replace with your Firebase config from Firebase Console
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "125358364983",
+            appId: "YOUR_APP_ID"
+        };
 
-    // send alert
-    btn.onclick = () => {
-      const name = document.getElementById('username').value || "Unknown";
-      socket.emit('danger_pressed', { sender: name });
-      alertBox.innerHTML = "🚨 Alert sent!";
-      alertBox.style.display = "block";
-    };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-    // receive alert
-    socket.on('alert_all', data => {
-      const [lat, lng] = data.location || [null, null];
-      let msg = `🚨 ${data.sender} is in danger!`;
-      if (lat && lng)
-        msg += `<br><a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" style="color:cyan;">View Location</a>`;
-      alertBox.innerHTML = msg;
-      alertBox.style.display = "block";
-      siren.play();
-    });
-  </script>
+        const btn = document.getElementById("alertBtn");
+        const status = document.getElementById("status");
+        const siren = document.getElementById("siren");
+
+        btn.addEventListener("click", () => {
+            const now = Date.now();
+            db.ref("alerts/").set({ time: now });
+            status.innerText = "🚨 Alert sent!";
+        });
+
+        db.ref("alerts/").on("value", snapshot => {
+            const data = snapshot.val();
+            if (data) {
+                siren.play();
+                alert("⚠️ Someone pressed the danger button!");
+            }
+        });
+    </script>
 </body>
 </html>
-
-
