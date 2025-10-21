@@ -47,16 +47,13 @@
   <button id="call108" class="btn">🚑 Call 108</button><br>
   <button id="call101" class="btn">🔥 Call 101</button><br>
   <p id="status"></p>
-  <audio id="siren" preload="auto">
-  <source src="{{ url_for('static', filename='alert.mp3') }}" type="audio/mpeg">
-  </audio>
-
+  <audio id="siren" src="{{ url_for('static', filename='alert.mp3') }}" preload="auto"></audio>
 
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCGj8pmHx2KKGNObpQE_2geEbsyQjdaOy0",
       authDomain: "emergency-app-13dc2.firebaseapp.com",
-      databaseURL: "https://emergency-app-13dc2-default-rtdb.firebaseio.com",
+      databaseURL: "https://emergency-app-13dc2-default-rtdb.firebaseio.com/",
       projectId: "emergency-app-13dc2",
       storageBucket: "emergency-app-13dc2.firebasestorage.app",
       messagingSenderId: "125358364983",
@@ -67,40 +64,42 @@
     const db = firebase.database();
 
     const btn = document.getElementById("alertBtn");
-    const status = document.getElementById("status");
     const siren = document.getElementById("siren");
-    
-    document.body.addEventListener("click", () => {
-    siren.play().then(() => {
-        siren.pause();
-        siren.currentTime = 0;
-        console.log("Audio unlocked ✅");
-    }).catch(e => console.log("Audio unlock failed:", e));
-}, { once: true });
+    const status = document.getElementById("status");
 
-// 🚨 Send alert to Firebase
-btn.addEventListener("click", () => {
-    const now = Date.now();
-    db.ref("alerts/").set({ time: now });
-    status.innerText = "🚨 Alert sent!";
-});
+    let isSender = false;
 
-// 🔔 Listen for alerts from Firebase
-db.ref("alerts/").on("value", snapshot => {
-    const data = snapshot.val();
-    if (data) {
-        console.log("Alert received:", data);
-        siren.volume = 1.0;
-        siren.play().catch(e => console.log("Siren play blocked:", e));
-        alert("⚠️ Someone pressed the danger button!");
-    }
-});
-    
+    btn.addEventListener("click", () => {
+      isSender = true;
+      navigator.geolocation.getCurrentPosition(pos => {
+        db.ref("alerts/").push({
+          time: Date.now(),
+          lat: pos.coords.latitude,
+          lon: pos.coords.longitude
+        });
+        status.innerText = "🚨 Alert sent successfully!";
+      }, () => {
+        db.ref("alerts/").push({ time: Date.now(), lat: null, lon: null });
+        status.innerText = "🚨 Alert sent (location unavailable)";
+      });
+    });
+
+    db.ref("alerts/").on("child_added", snapshot => {
+      if (!isSender) {
+        const data = snapshot.val();
+        siren.play();
+        let msg = "⚠️ Someone triggered an alert!";
+        if (data.lat && data.lon)
+          msg += `\n📍 Location: https://www.google.com/maps?q=${data.lat},${data.lon}`;
+        alert(msg);
+      }
+      isSender = false;
+    });
+
     // Emergency call buttons
     document.getElementById("call112").onclick = () => window.location.href = "tel:112";
     document.getElementById("call108").onclick = () => window.location.href = "tel:108";
     document.getElementById("call101").onclick = () => window.location.href = "tel:101";
-
   </script>
 </body>
 </html>
