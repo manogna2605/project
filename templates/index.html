@@ -33,7 +33,7 @@
 
         btn.addEventListener("click", () => {
             const now = Date.now();
-            db.ref("alerts/").set({ time: now });
+            db.ref("alerts/").push({ time: now });
             status.innerText = "🚨 Alert sent!";
         });
 
