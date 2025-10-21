@@ -1,6 +1,6 @@
+setuptools
 flask
-flask_socketio
-geocoder
-Flask>=2.3.0
+flask-socketio
 gunicorn
 eventlet==0.33.0
+
