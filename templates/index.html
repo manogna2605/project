@@ -100,6 +100,14 @@
     document.getElementById("call112").onclick = () => window.location.href = "tel:112";
     document.getElementById("call108").onclick = () => window.location.href = "tel:108";
     document.getElementById("call101").onclick = () => window.location.href = "tel:101";
+    // Allow browsers to unlock audio playback after first interaction
+   document.body.addEventListener("click", () => {
+   siren.play().then(() => {
+      siren.pause();
+      siren.currentTime = 0;
+     }).catch(err => console.log("Audio unlock failed:", err));
+    }, { once: true });
+
   </script>
 </body>
 </html>
