@@ -50,6 +50,12 @@
   <audio id="siren" src="{{ url_for('static', filename='alert.mp3') }}" preload="auto"></audio>
 
   <script>
+    if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/static/sw.js")
+    .then(() => console.log("✅ Service Worker registered"))
+    .catch(err => console.log("Service Worker failed:", err));
+}
+
     const firebaseConfig = {
       apiKey: "AIzaSyCGj8pmHx2KKGNObpQE_2geEbsyQjdaOy0",
       authDomain: "emergency-app-13dc2.firebaseapp.com",
